@@ -1,8 +1,5 @@
 package org.romeo.unbroken.state
 
-import org.romeo.unbroken.state.Level.Level
-import org.romeo.unbroken.state.WeaponType.WeaponType
-
 import scalaz.State
 
 case class GameState(resources: Resources,
@@ -10,49 +7,79 @@ case class GameState(resources: Resources,
                      deckState: DeckState,
                      activeWeapon: Weapon,
                      character: PlayerCharacter,
-                     skills: Seq[Skill],
+                     skills: Seq[SkillCard],
                      conditions: Seq[Condition],
                      activeMonster: Option[Monster],
                      phase: Phase,
                      currentLevel: Level,
-                     timeRemaining: Int)
+                     timeRemaining: Int,
+                     difficulty: Difficulty)
 
 case class Resources(cunning: Int, food: Int, wood: Int, metal: Int, treasure: Int)
 
 case class Effort(small: Int, medium: Int, large: Int)
 
-case class DeckState()
+case class DeckState(encounterDeck: Seq[EncounterCard],
+                     encounterDiscard: Seq[EncounterCard],
+                     skillDeck: Seq[SkillCard],
+                     skillDiscard: Seq[SkillCard])
+
+abstract class EncounterCard(name: String) {
+
+}
 
 case class Weapon(name: String, weaponType: WeaponType, attacks: Seq[WeaponAttack])
-
-object WeaponType extends Enumeration {
-  type WeaponType = Value
-  val BareHands, Basic, Advanced = Value
-}
 
 abstract class WeaponAttack(cost: Cost) {
   def weaponEffect: State[GameState, Monster]
 }
 
-case class PlayerCharacter(name: String, maxAbilityUses: Int, abilityUsesRemaining: Int, abilities: Seq[CharacterAbility])
+case class PlayerCharacter(name: String,
+                           maxAbilityUses: Int,
+                           abilityUsesRemaining: Int,
+                           abilities: Seq[CharacterAbility])
 
 abstract class CharacterAbility(cost: Cost) {
   type T
+
   def getReturnType: Class[T] = Class[T]
+
   def abilityEffect: State[GameState, T]
 }
 
-case class Skill()
+case class SkillCard(name: String)
 
-case class Condition()
+case class Condition(name: String)
 
-case class Monster()
+case class Monster(name: String)
 
-case class Phase()
+case class Phase(name: String, nextPhaseChoices: Seq[Phase])
 
-case class Cost()
+case class Cost(small: Int, medium: Int, large: Int, cunning: Int, food: Int, wood: Int, metal: Int, treasure: Int)
 
-object Level extends Enumeration {
-  type Level = Value
-  val Level1, Level2, Level3, Level4 = Value
-}
+sealed trait Level
+
+case object Level1 extends Level
+
+case object Level2 extends Level
+
+case object Level3 extends Level
+
+case object Level4 extends Level
+
+sealed trait Difficulty
+
+case object Easy extends Difficulty
+
+case object Medium extends Difficulty
+
+case object Hard extends Difficulty
+
+sealed trait WeaponType
+
+case object BareHands
+
+case object Basic
+
+case object Advanced
+
